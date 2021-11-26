@@ -1,9 +1,8 @@
 import { WebGLRenderer } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-
-import { FXAAPass } from './postprocessing/FXAAPass';
-import { stage } from './stage';
+import { FXAAPass } from './misc/FXAAPass';
+import stage from './stage';
 
 // Renderer
 

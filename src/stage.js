@@ -3,7 +3,7 @@ import { Color, PerspectiveCamera, Scene } from 'three';
 // Scene
 
 const scene = new Scene();
-scene.background = new Color( 0x0088ff );
+scene.background = new Color( 0x001122 );
 
 // Camera
 
