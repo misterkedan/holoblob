@@ -1,0 +1,35 @@
+body {
+	font-family: sans-serif;
+    background: #000;
+    color: #fff;
+	-webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+	overflow: hidden;
+}
+
+body, canvas {
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+
+#footer {
+	font-size: 0.875rem;
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	margin: 1rem;
+	color: rgba( 255, 255, 255, 0.5 );
+}
+
+#footer a {
+	color: rgba( 40, 200, 255, 0.8 );
+}
+
+#footer a:visited {
+	color: rgba( 100, 150, 255, 0.8);
+}
+
+#footer a:hover{
+	color: rgba( 70, 190, 255, 1 );
+}
