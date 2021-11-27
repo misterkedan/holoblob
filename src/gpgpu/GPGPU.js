@@ -1,6 +1,7 @@
 import {
-	Camera, ClampToEdgeWrapping, DataTexture, Mesh, NearestFilter, PlaneGeometry,
-	RGBAFormat, Scene, UnsignedByteType, WebGLRenderTarget
+	BufferAttribute, BufferGeometry, Camera, ClampToEdgeWrapping, DataTexture,
+	Mesh, NearestFilter, PlaneGeometry, RGBAFormat, Scene, Uint32BufferAttribute,
+	UnsignedByteType, WebGLRenderTarget
 } from 'three';
 
 function checkHardware() {
@@ -111,6 +112,120 @@ const GPGPU = {
 		GPGPU.renderer.setRenderTarget( renderTarget );
 		GPGPU.renderer.render( GPGPU.scene, GPGPU.camera );
 		GPGPU.renderer.setRenderTarget( null );
+
+	},
+
+	/*-------------------------------------------------------------------------/
+
+		Utility for preparing mesh-particles
+
+	/-------------------------------------------------------------------------*/
+
+	cloneGeometry: ( stem, count, textureSize ) => {
+
+		const geometry = new BufferGeometry();
+
+		const verticesPerClone = stem.attributes.position.count;
+		const positionsPerClone = verticesPerClone * 3;
+		const uvsPerClone = verticesPerClone * 2;
+
+		const verticesCount = verticesPerClone * count;
+		const doubleCount = verticesCount * 2;
+		const tripleCount = verticesCount * 3;
+
+		const positions = new Float32Array( tripleCount );
+		const normals = new Float32Array( tripleCount );
+		const uvs = new Float32Array( doubleCount );
+		const references = new Float32Array( doubleCount );
+
+		const stemPositions = stem.attributes.position.array;
+		const stemNormals = stem.attributes.normal?.array || [];
+		const stemUVs = stem.attributes.uv?.array || [];
+
+		let x = 0;
+		let y = 0;
+		let reference = 0;
+		let instance = 0;
+
+		let position = 0;
+		let uv = 0;
+
+		for ( let i = 0; i < tripleCount; i ++ ) {
+
+			// Instance
+
+			if ( position === positionsPerClone ) {
+
+				position = 0;
+				instance ++;
+
+				x = ( instance % textureSize ) / textureSize;
+				y = ~ ~ ( instance / textureSize ) / textureSize;
+				// note : ~ ~ is an obscure, bitwise equivalent of Math.floor()
+				// not recommended in general, because it is less legible
+				// used for performance because we're dealing with large arrays
+
+			}
+
+			if ( uv === uvsPerClone ) uv = 0;
+
+			// Vertex
+
+			if ( ! ( i % 3 ) ) {
+
+				references[ reference ++ ] = x;
+				references[ reference ++ ] = y;
+
+			}
+
+			// Position + normals
+
+			positions[ i ] = stemPositions[ position ];
+			normals[ i ] = stemNormals[ position ];
+			position ++;
+
+			// UV
+
+			uvs[ i ] = stemUVs[ uv ];
+			uv ++;
+
+		}
+
+		geometry.setAttribute(
+			'position',  new BufferAttribute( positions, 3 )
+		);
+
+		geometry.setAttribute(
+			'reference', new BufferAttribute( references, 2 )
+		);
+
+		if ( stem.attributes.normals ) geometry.setAttribute(
+			'normal', new BufferAttribute( normals, 3 )
+		);
+
+		if ( stem.attributes.uv ) geometry.setAttribute(
+			'uv', new BufferAttribute( uvs, 2 )
+		);
+
+		if ( stem.index ) {
+
+			let stemIndices = stem.index.array;
+			let indicesPerClone = stemIndices.length;
+			let indicesTotal = indicesPerClone * count;
+			let indices = new Uint32Array( indicesTotal );
+
+			for ( let i = 0, offset; i < indicesTotal; i ++ ) {
+
+				offset = ~ ~ ( i / indicesPerClone ) * verticesPerClone;
+				indices[ i ] = stemIndices[ i % indicesPerClone ] + offset;
+
+			}
+
+			geometry.setIndex( new Uint32BufferAttribute( indices, 1 ) );
+
+		}
+
+		return geometry;
 
 	},
 

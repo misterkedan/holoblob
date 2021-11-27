@@ -1,162 +1,78 @@
-import { BoxGeometry, BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, Uint32BufferAttribute } from 'three';
+import { BoxGeometry, BufferAttribute, BufferGeometry, EdgesGeometry, Mesh, MeshBasicMaterial, SphereGeometry, TetrahedronGeometry, Uint32BufferAttribute, Vector3 } from 'three';
 import { FloatPack } from './gpgpu/FloatPack';
 import { GPGPU } from './gpgpu/GPGPU';
 import { GPGPUVariable } from './gpgpu/GPGPUVariable';
 import render from './render';
 import stage from './stage';
+import utils from './utils';
 
 // PREP
 
 GPGPU.init( render.renderer );
 
-const count = 4;
-const size = GPGPU.getTextureSize( count );
+// Geometry we will use to position the particles
+const blueprint = new SphereGeometry( 5, 64, 32 );
+const vertices = utils.removeDuplicateVertices( blueprint );
+//console.log( blueprint );
+
+// Compute the size of the GPGPU Textures
+const count = vertices.length / 3;
+const textureSize = GPGPU.getTextureSize( count );
 
 // GPGPU
 
-let startPositions = {};
+let startPositions = { x: [], y: [], z:[] };
 
-const x = new Array( count );
-//const y = new Float32Array( count );
-//const z = new Float32Array( count );
+for ( let i = 0; i < vertices.length; i += 3 ) {
 
-for ( let i = 0; i < count; i ++ ) {
-
-	x[ i ] = i * 1.1;
+	startPositions.x.push( vertices[ i ] );
+	startPositions.y.push( vertices[ i + 1 ] );
+	startPositions.z.push( vertices[ i + 2 ] );
 
 }
 
-const GPGPUPositionX = new GPGPUVariable( {
-	data: x,
-} );
+const GPGPUPositionX = new GPGPUVariable( { data: startPositions.x } );
+const GPGPUPositionY = new GPGPUVariable( { data: startPositions.y } );
+const GPGPUPositionZ = new GPGPUVariable( { data: startPositions.z } );
 
 GPGPUPositionX.compute();
+GPGPUPositionY.compute();
+GPGPUPositionZ.compute();
 
 // MESH
 
-const stem = new BoxGeometry();
+const size = 0.2;
+
+const stem = new EdgesGeometry( new BoxGeometry( size, size, size ) );
 //console.log( stem );
 
-function cloneGeometry( stem, count ) {
-
-	const geometry = new BufferGeometry();
-
-	const verticesPerClone = stem.attributes.position.count;
-	const positionsPerClone = verticesPerClone * 3;
-	const uvsPerClone = verticesPerClone * 2;
-
-	const verticesCount = verticesPerClone * count;
-	const positionsCount = verticesCount * 3;
-	const uvsCount = verticesCount * 2;
-
-	const positions = new Float32Array( positionsCount );
-	const normals = new Float32Array( positionsCount );
-	const uvs = new Float32Array( uvsCount );
-	const references = new Float32Array( uvsCount );
-
-	const stemPositions = stem.attributes.position.array;
-	const stemNormals = stem.attributes.normal.array;
-	const stemUVs = stem.attributes.uv.array;
-
-	let x = 0;
-	let y = 0;
-	let reference = 0;
-	let instance = 0;
-
-	let position = 0;
-	let uv = 0;
-
-	for ( let i = 0; i < positionsCount; i ++ ) {
-
-		// Instance
-
-		if ( position === positionsPerClone ) {
-
-			position = 0;
-			instance ++;
-
-			x = ( instance % size ) / size;
-			y = ~ ~ ( instance / size ) / size;
-			// note : ~ ~ is an obscure, bitwise equivalent of Math.floor()
-			// not recommended in general, because it is less legible
-			// used for performance because we're dealing with large arrays
-
-		}
-
-		if ( uv === uvsPerClone ) uv = 0;
-
-		// Vertex
-
-		if ( ! ( i % 3 ) ) {
-
-			references[ reference ++ ] = x;
-			references[ reference ++ ] = y;
-
-		}
-
-		// Position
-
-		positions[ i ] = stemPositions[ position ];
-		normals[ i ] = stemNormals[ position ];
-		position ++;
-
-		// UV
-
-		uvs[ i ] = stemUVs[ uv ];
-		uv ++;
-
-	}
-
-	geometry.setAttribute( 'position',  new BufferAttribute( positions,     3 ) );
-	geometry.setAttribute( 'normal',    new BufferAttribute( normals,       3 ) );
-	geometry.setAttribute( 'uv', 		new BufferAttribute( uvs,    		2 ) );
-	geometry.setAttribute( 'reference', new BufferAttribute( references,    2 ) );
-
-	if ( stem.index ) {
-
-		let stemIndices = stem.index.array;
-		let indicesPerClone = stemIndices.length;
-		let indicesTotal = indicesPerClone * count;
-		let indices = new Uint32Array( indicesTotal );
-
-		for ( let i = 0, offset; i < indicesTotal; i ++ ) {
-
-			offset = ~ ~ ( i / indicesPerClone ) * verticesPerClone;
-			indices[ i ] = stemIndices[ i % indicesPerClone ] + offset;
-
-		}
-
-		geometry.setIndex( new Uint32BufferAttribute( indices, 1 ) );
-
-	}
-
-	return geometry;
-
-}
-
-//console.time( 'test' );
-const geometry = cloneGeometry( stem, count );
-//console.timeEnd( 'test' );
+const geometry = GPGPU.cloneGeometry( stem, count, textureSize );
 
 const material = new MeshBasicMaterial( {
+	opacity: 0.3,
+	transparent: true,
 	wireframe: true,
 } );
 
 const declarations = /*glsl*/`
 attribute vec2 reference;
 uniform sampler2D gpgpuX;
+uniform sampler2D gpgpuY;
+uniform sampler2D gpgpuZ;
 ${ FloatPack.glsl }
 `;
 
 const modifications = /*glsl*/`
 	transformed.x += unpackFloat( texture2D( gpgpuX, reference ) );
+	transformed.y += unpackFloat( texture2D( gpgpuY, reference ) );
+	transformed.z += unpackFloat( texture2D( gpgpuZ, reference ) );
 `;
-
-let mainShader;
 
 material.onBeforeCompile = ( shader ) => {
 
 	shader.uniforms.gpgpuX = { value: GPGPUPositionX.output };
+	shader.uniforms.gpgpuY = { value: GPGPUPositionY.output };
+	shader.uniforms.gpgpuZ = { value: GPGPUPositionZ.output };
 
 	const before = 'void main()';
 	const begin = '#include <begin_vertex>';
@@ -166,7 +82,7 @@ material.onBeforeCompile = ( shader ) => {
 	vertexShader = vertexShader.replace( begin, begin + modifications );
 	shader.vertexShader = vertexShader;
 
-	mainShader = shader;
+	material.shader = shader;
 
 };
 
