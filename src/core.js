@@ -1,4 +1,6 @@
-import { BoxGeometry, BufferAttribute, BufferGeometry, EdgesGeometry, Mesh, MeshBasicMaterial, SphereGeometry, TetrahedronGeometry, Uint32BufferAttribute, Vector3 } from 'three';
+import {
+	BoxGeometry, EdgesGeometry, LineBasicMaterial, LineSegments, SphereGeometry,
+} from 'three';
 import { FloatPack } from './gpgpu/FloatPack';
 import { GPGPU } from './gpgpu/GPGPU';
 import { GPGPUVariable } from './gpgpu/GPGPUVariable';
@@ -11,7 +13,10 @@ import utils from './utils';
 GPGPU.init( render.renderer );
 
 // Geometry we will use to position the particles
-const blueprint = new SphereGeometry( 5, 64, 32 );
+
+const blueprintSize = 4;
+const segments = 32;
+const blueprint = new SphereGeometry( blueprintSize, segments * 2, segments );
 const vertices = utils.removeDuplicateVertices( blueprint );
 //console.log( blueprint );
 
@@ -41,17 +46,17 @@ GPGPUPositionZ.compute();
 
 // MESH
 
-const size = 0.2;
+const particleSize = 0.15;
 
-const stem = new EdgesGeometry( new BoxGeometry( size, size, size ) );
-//console.log( stem );
+const particleGeometry = new EdgesGeometry(
+	new BoxGeometry( particleSize, particleSize, particleSize )
+);
 
-const geometry = GPGPU.cloneGeometry( stem, count, textureSize );
+const geometry = GPGPU.cloneGeometry( particleGeometry, count, textureSize );
 
-const material = new MeshBasicMaterial( {
-	opacity: 0.3,
+const material = new LineBasicMaterial( {
+	opacity: 0.5,
 	transparent: true,
-	wireframe: true,
 } );
 
 const declarations = /*glsl*/`
@@ -86,8 +91,8 @@ material.onBeforeCompile = ( shader ) => {
 
 };
 
-const mesh = new Mesh( geometry, material );
-stage.add( mesh );
+const lines = new LineSegments( geometry, material );
+stage.add( lines );
 
 
 // METHODS
