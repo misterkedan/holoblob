@@ -1,9 +1,10 @@
 import { Color, PerspectiveCamera, Scene } from 'three';
+import config from './config';
 
 // Scene
 
 const scene = new Scene();
-scene.background = new Color( 0x001122 );
+scene.background = new Color( config.backgroundColor );
 
 // Camera
 
