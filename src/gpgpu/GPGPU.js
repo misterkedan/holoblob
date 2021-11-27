@@ -123,9 +123,8 @@ const GPGPU = {
 
 	cloneGeometry: ( stem, count ) => {
 
-		const textureSize = GPGPU.getTextureSize( count );
-
 		const geometry = new BufferGeometry();
+		const textureSize = GPGPU.getTextureSize( count );
 
 		const verticesPerClone = stem.attributes.position.count;
 		const positionsPerClone = verticesPerClone * 3;

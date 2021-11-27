@@ -1,6 +1,8 @@
 import { WebGLRenderer } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import config from './config';
+import { DitheredUnrealBloomPass } from './misc/DitheredUnrealBloomPass';
 import { FXAAPass } from './misc/FXAAPass';
 import stage from './stage';
 
@@ -13,8 +15,6 @@ const renderer = new WebGLRenderer( {
 	depth: false
 } );
 
-
-
 const canvas = renderer.domElement;
 document.getElementById( 'main' ).appendChild( canvas );
 
@@ -22,9 +22,11 @@ document.getElementById( 'main' ).appendChild( canvas );
 
 const composer = new EffectComposer( renderer );
 
+
 const passes = {
 	render: new RenderPass( stage.scene, stage.camera ),
 	fxaa: new FXAAPass(),
+	bloom: new DitheredUnrealBloomPass( config.bloom ),
 };
 
 // Methods

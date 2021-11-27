@@ -23,14 +23,14 @@ import utils from './utils';
 GPGPU.init( render.renderer );
 
 // Geometry we will use to position the particles.
-const blueprint = new SphereGeometry(
-	config.size,
-	config.segments * 2,
-	config.segments
+const container = new SphereGeometry(
+	config.containerSize,
+	config.containerSegments * 2,
+	config.containerSegments
 );
 
 // We need to remove duplicate vertices to avoid duplicate particules.
-const vertices = utils.removeDuplicateVertices( blueprint );
+const vertices = utils.removeDuplicateVertices( container );
 
 /*-----------------------------------------------------------------------------/
 
@@ -107,6 +107,7 @@ const geometry = GPGPU.cloneGeometry( particleGeometry, particleCount );
 /-----------------------------------------------------------------------------*/
 
 const material = new LineBasicMaterial( {
+	color: config.particleColor,
 	opacity: config.particleOpacity,
 	transparent: true,
 } );

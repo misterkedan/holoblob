@@ -4,28 +4,35 @@ import config from './config';
 import render from './render';
 import stage from './stage';
 
-// Pointer setup
+/*-----------------------------------------------------------------------------/
 
+	Setup
 
+/-----------------------------------------------------------------------------*/
 
 const pointer = new Vector2();
 const raycaster = new Raycaster();
 
-const hitboxSize = config.size * 10;
+const hitboxSize = config.containerSize * 10;
 const hitbox = new Mesh(
 	new PlaneGeometry( hitboxSize, hitboxSize ),
 	new MeshBasicMaterial( { color: 'red', opacity: 0.25, transparent:true  } )
 );
 stage.add( hitbox );
 
-const cursorSize = config.size * 0.1;
+const cursorSize = config.containerSize * 0.1;
 const cursor = new Mesh(
 	new BoxGeometry( cursorSize, cursorSize, cursorSize ),
 	new MeshBasicMaterial( { color: 'blue', wireframe: true } )
 );
 stage.add( cursor );
 
-// Event handlers
+/*-----------------------------------------------------------------------------/
+
+	Event handlers
+
+/-----------------------------------------------------------------------------*/
+
 
 function onTouchStart( event ) {
 
@@ -46,7 +53,11 @@ function onPointerMove( event ) {
 
 }
 
-// Main
+/*-----------------------------------------------------------------------------/
+
+	Main
+
+/-----------------------------------------------------------------------------*/
 
 function init() {
 
