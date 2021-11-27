@@ -1,12 +1,13 @@
 import { Ticker } from './misc/Ticker';
 
+import controls from './controls';
 import core from './core';
 import render from './render';
 import stage from './stage';
 
 // Setup
 
-const toUpdate = [ core, render ];
+const toUpdate = [ controls, core, render ];
 let needsResize = true;
 
 // Start
@@ -17,7 +18,8 @@ init();
 
 function init() {
 
-	render.init();
+	const toInit = [ render, controls ];
+	toInit.forEach( item => item.init() );
 
 	window.addEventListener( 'resize', () => needsResize = true );
 

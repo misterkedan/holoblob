@@ -1,6 +1,7 @@
 import {
 	BoxGeometry, EdgesGeometry, LineBasicMaterial, LineSegments, SphereGeometry,
 } from 'three';
+import config from './config';
 import { FloatPack } from './gpgpu/FloatPack';
 import { GPGPU } from './gpgpu/GPGPU';
 import { GPGPUVariable } from './gpgpu/GPGPUVariable';
@@ -14,9 +15,8 @@ GPGPU.init( render.renderer );
 
 // Geometry we will use to position the particles
 
-const blueprintSize = 4;
 const segments = 32;
-const blueprint = new SphereGeometry( blueprintSize, segments * 2, segments );
+const blueprint = new SphereGeometry( config.size, segments * 2, segments );
 const vertices = utils.removeDuplicateVertices( blueprint );
 //console.log( blueprint );
 
@@ -97,12 +97,12 @@ stage.add( lines );
 
 // METHODS
 
-function update( time, delta ) {
+function update() {
 
-	//console.log( { time, delta } );
+	//
 
 }
 
 // EXPORT
 
-export default { update };
+export default { material, update };
