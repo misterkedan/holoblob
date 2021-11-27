@@ -4,8 +4,7 @@ import { FloatPack } from './FloatPack';
 
 class GPGPUVariable {
 
-	constructor( {
-		data,
+	constructor( input, {
 		shader = GPGPUVariable.fragmentShader,
 		uniforms = {}
 	} = {} ) {
@@ -16,7 +15,31 @@ class GPGPUVariable {
 
 		this._shader = shader;
 		this._uniforms = uniforms;
-		this.data = data;
+
+		this.init( input );
+
+	}
+
+	init( input ) {
+
+		// The data can either be an array or a length
+		const dataIsArray = Array.isArray( input );
+
+		const size = ( dataIsArray )
+			? GPGPU.getTextureSize( input.length )
+			: GPGPU.getTextureSize( input );
+		this._size = size;
+
+		this.dataTexture = GPGPU.createTexture( size );
+		this._buffer = this.dataTexture.image.data;
+		this._data = ( dataIsArray ) ? input : new Float32Array( size * size );
+		if ( dataIsArray ) FloatPack.pack( input, this.dataTexture.image.data );
+
+		this.uniforms = this._uniforms;
+
+		this._rt1 = GPGPU.createRenderTarget( size );
+		this._rt2 = GPGPU.createRenderTarget( size );
+		this.renderTarget = this._rt1;
 
 	}
 
@@ -29,14 +52,7 @@ class GPGPUVariable {
 			: this._rt1;
 
 		GPGPU.render( this.material, this.renderTarget );
-		this.material.uniforms.tData.value = this.renderTarget.texture;
-
-	}
-
-	fill( number ) {
-
-		this._data.fill( number );
-		FloatPack.pack( this._data, this.tData.image.data );
+		this.material.uniforms.GPGPU_data.value = this.renderTarget.texture;
 
 	}
 
@@ -44,12 +60,26 @@ class GPGPUVariable {
 
 		this._rt1.dispose();
 		this._rt2.dispose();
-		this.tData.dispose();
+		this.dataTexture.dispose();
 
 	}
 
-	// This is slow and intended for debug only
+	/*-------------------------------------------------------------------------/
+
+		Utils
+
+	/-------------------------------------------------------------------------*/
+
+	fill( number ) {
+
+		this._data.fill( number );
+		FloatPack.pack( this._data, this.dataTexture.image.data );
+
+	}
+
 	read() {
+
+		// This is slow and intended for debug only
 
 		GPGPU.renderer.readRenderTargetPixels(
 			this.renderTarget, 0, 0, this._size, this._size, this._buffer
@@ -65,31 +95,6 @@ class GPGPUVariable {
 		Getters & Setters
 
 	/-------------------------------------------------------------------------*/
-
-
-
-	set data( data ) {
-
-		// The data can either be an array or a length
-		const dataIsArray = Array.isArray( data );
-
-		const size = ( dataIsArray )
-			? GPGPU.getTextureSize( data.length )
-			: GPGPU.getTextureSize( data );
-		this._size = size;
-
-		this.tData = GPGPU.createTexture( size );
-		this._buffer = this.tData.image.data;
-		this._data = ( dataIsArray ) ? data : new Float32Array( size * size );
-		if ( dataIsArray ) FloatPack.pack( data, this.tData.image.data );
-
-		this.uniforms = this._uniforms;
-
-		this._rt1 = GPGPU.createRenderTarget( size );
-		this._rt2 = GPGPU.createRenderTarget( size );
-		this.renderTarget = this._rt1;
-
-	}
 
 	get shader() {
 
@@ -120,7 +125,7 @@ class GPGPUVariable {
 
 	set uniforms( uniforms ) {
 
-		uniforms.tData = { value: this.tData };
+		uniforms.GPGPU_data = { value: this.dataTexture };
 		this._uniforms = uniforms;
 		this.shader = this._shader;
 
@@ -140,7 +145,7 @@ class GPGPUVariable {
 
 	get output() {
 
-		return this.material.uniforms.tData.value;
+		return this.material.uniforms.GPGPU_data.value;
 
 	}
 
@@ -164,14 +169,14 @@ GPGPUVariable.vertexShader = /*glsl*/`
 
 GPGPUVariable.fragmentShader = /*glsl*/`
 
-    uniform sampler2D tData;
+    uniform sampler2D GPGPU_data;
 
     ${ FloatPack.glsl }
 
     void main() {
         
         vec2 uv = gl_FragCoord.xy / resolution.xy;
-        float data = unpackFloat( texture2D( tData, uv ) );
+        float data = unpackFloat( texture2D( GPGPU_data, uv ) );
 
         // Modify data...
 

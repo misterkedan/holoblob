@@ -11,7 +11,7 @@ new OrbitControls( stage.camera, render.canvas );
 const pointer = new Vector2();
 const raycaster = new Raycaster();
 
-const hitboxSize = config.size * 4;
+const hitboxSize = config.size * 10;
 const hitbox = new Mesh(
 	new PlaneGeometry( hitboxSize, hitboxSize ),
 	new MeshBasicMaterial( { color: 'red', opacity: 0.25, transparent:true  } )
@@ -55,7 +55,6 @@ function init() {
 
 	if ( config.debug ) {
 
-
 		render.canvas.addEventListener( 'pointerup', onPointerUp );
 
 	} else {
@@ -76,4 +75,4 @@ function update() {
 
 }
 
-export default { init, update };
+export default { init, update, cursor: cursor.position };
