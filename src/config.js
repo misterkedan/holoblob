@@ -1,4 +1,4 @@
 export default {
 	//debug: true,
-	size: 4,
+	size: 3.5,
 };

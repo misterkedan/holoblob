@@ -140,13 +140,6 @@ function update() {
 	GPGPU.translate.y.compute();
 	GPGPU.translate.z.compute();
 
-	//if ( material.shader ) {
-
-	//	material.shader.uniforms.GPGPU_y.value = GPGPU.translate.y.output;
-
-	//}
-
-
 }
 
 // EXPORT

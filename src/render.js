@@ -13,11 +13,10 @@ const renderer = new WebGLRenderer( {
 	depth: false
 } );
 
+
+
 const canvas = renderer.domElement;
 document.getElementById( 'main' ).appendChild( canvas );
-
-const pixelRatio = Math.min( window.devicePixelRatio, 2 );
-renderer.setPixelRatio( pixelRatio );
 
 // Composer
 
@@ -38,6 +37,8 @@ function init() {
 
 function resize( width, height ) {
 
+	const pixelRatio = Math.min( window.devicePixelRatio, 2 );
+	renderer.setPixelRatio( pixelRatio );
 	renderer.setSize( width, height );
 	composer.setSize( width, height );
 

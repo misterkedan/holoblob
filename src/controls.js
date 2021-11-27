@@ -6,7 +6,7 @@ import stage from './stage';
 
 // Pointer setup
 
-new OrbitControls( stage.camera, render.canvas );
+
 
 const pointer = new Vector2();
 const raycaster = new Raycaster();
@@ -63,6 +63,11 @@ function init() {
 		cursor.visible = false;
 
 	}
+
+	const deviceHasTouch = !! navigator.maxTouchPoints;
+	//const deviceIsTablet = deviceHasTouch && Math.max( window.innerWidth, window.innerHeight ) > 1000;
+	//const deviceIsMobile = deviceHasTouch && ! deviceIsTablet;
+	if ( ! deviceHasTouch ) new OrbitControls( stage.camera, render.canvas );
 
 }
 
