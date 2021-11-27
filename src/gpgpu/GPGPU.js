@@ -121,7 +121,9 @@ const GPGPU = {
 
 	/-------------------------------------------------------------------------*/
 
-	cloneGeometry: ( stem, count, textureSize ) => {
+	cloneGeometry: ( stem, count ) => {
+
+		const textureSize = GPGPU.getTextureSize( count );
 
 		const geometry = new BufferGeometry();
 
