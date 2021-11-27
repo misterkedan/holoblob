@@ -1,6 +1,6 @@
 {
   "name": "202111-gpgpu-demo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Simple GPGPU demo, by Pierre Keda.",
   "author": "Pierre Keda",
   "license": "MIT",

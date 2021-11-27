@@ -3,6 +3,23 @@ import {
 	RGBAFormat, Scene, UnsignedByteType, WebGLRenderTarget
 } from 'three';
 
+function checkHardware() {
+
+	GPGPU.isSupported = true;
+
+	if ( ! GPGPU.renderer.capabilities.maxVertexTextures ) {
+
+		console.warn( 'No support for vertex textures.' );
+		GPGPU.isSupported = false;
+
+	}
+
+	if ( ! GPGPU.isSupported ) window.alert( 'Incompatible hardware.' );
+
+	return GPGPU.isSupported;
+
+}
+
 const GPGPU = {
 
 	/**
@@ -98,22 +115,5 @@ const GPGPU = {
 	},
 
 };
-
-function checkHardware() {
-
-	GPGPU.isSupported = true;
-
-	if ( ! GPGPU.renderer.capabilities.maxVertexTextures ) {
-
-		console.warn( 'No support for vertex textures.' );
-		GPGPU.isSupported = false;
-
-	}
-
-	if ( ! GPGPU.isSupported ) window.alert( 'Incompatible hardware.' );
-
-	return GPGPU.isSupported;
-
-}
 
 export { GPGPU };

@@ -48,15 +48,8 @@ class GPGPUVariable {
 
 	}
 
-	/*-------------------------------------------------------------------------/
-
-		Getters & Setters
-
-	/-------------------------------------------------------------------------*/
-
-	get data() {
-
-		// This is slow and intended for debug only
+	// This is slow and intended for debug only
+	read() {
 
 		GPGPU.renderer.readRenderTargetPixels(
 			this.renderTarget, 0, 0, this._size, this._size, this._buffer
@@ -66,6 +59,14 @@ class GPGPUVariable {
 		return this._data;
 
 	}
+
+	/*-------------------------------------------------------------------------/
+
+		Getters & Setters
+
+	/-------------------------------------------------------------------------*/
+
+
 
 	set data( data ) {
 
@@ -102,7 +103,7 @@ class GPGPUVariable {
 
 		this.material = new ShaderMaterial( {
 			uniforms: this._uniforms,
-			vertexShader: GPGPU.vertexShader,
+			vertexShader: GPGPUVariable.vertexShader,
 			fragmentShader: shader
 		} );
 
@@ -147,7 +148,7 @@ class GPGPUVariable {
 
 /*-----------------------------------------------------------------------------/
 
-	Static public
+	Static
 
 /-----------------------------------------------------------------------------*/
 
