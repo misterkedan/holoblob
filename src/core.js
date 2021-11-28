@@ -38,7 +38,6 @@ const particlePositions = utils.removeDuplicateVertices( container );
 // Pre-computed numbers
 const particleCount = particlePositions.length / 3;
 const textureSize = GPGPU.getTextureSize( particleCount );
-if ( config.debug ) console.log( { particleCount } );
 
 /*-----------------------------------------------------------------------------/
 
@@ -112,6 +111,13 @@ const particleGeometry = new EdgesGeometry( new BoxGeometry(
 const geometry = GPGPU.cloneGeometry(
 	particleGeometry, particleCount, textureSize
 );
+
+if ( config.debug ) {
+
+	console.log( { particleCount } );
+	console.log( { totalVertices: geometry.attributes.position.count } );
+
+}
 
 /*-----------------------------------------------------------------------------/
 
