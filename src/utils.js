@@ -1,4 +1,4 @@
-function removeDuplicateVertices( geometry ) {
+function removeDuplicateVertices( geometry, decimalPlaces = 4 ) {
 
 	const positions = geometry.attributes.position.array;
 	const separator = '|';
@@ -6,8 +6,10 @@ function removeDuplicateVertices( geometry ) {
 
 	for ( let i = 0; i < positions.length; i += 3 ) {
 
-		const vertex = [ positions[ i ], positions[ i + 1 ], positions[ i + 2 ] ];
-		stringVertices.push( vertex.join( separator ) );
+		const x = trimFloat( positions[   i   ], decimalPlaces );
+		const y = trimFloat( positions[ i + 1 ], decimalPlaces );
+		const z = trimFloat( positions[ i + 2 ], decimalPlaces );
+		stringVertices.push( [ x, y, z ].join( separator ) );
 
 	}
 
@@ -25,4 +27,12 @@ function removeDuplicateVertices( geometry ) {
 
 }
 
-export default { removeDuplicateVertices };
+function trimFloat( float, decimals = 4, method = Math.round ) {
+
+	var p = Math.pow( 10, decimals || 0 );
+	var n = ( float * p ) * ( 1 + Number.EPSILON );
+	return method( n ) / p;
+
+}
+
+export default { removeDuplicateVertices, trimFloat };

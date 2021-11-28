@@ -5,7 +5,7 @@ export default {
 	containerSize: 3.5,
 	containerSegments: 64,
 
-	particleColor: 0x00ddff,
+	particleColor: 0x00ddff, // 00ffff
 	particleOpacity: 0.3,
 	particleSize: 0.05,
 
@@ -14,7 +14,7 @@ export default {
 		dampingFactor: 0.02,
 	},
 
-	backgroundColor: 0x003070,
+	backgroundColor: 0x003070, // 00306b
 	bloom: {
 		strength: 0.6,
 		radius: 1.0,
