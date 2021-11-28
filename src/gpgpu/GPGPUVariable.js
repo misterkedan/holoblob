@@ -11,15 +11,15 @@ class GPGPUVariable {
 	 * computations on the GPU. The output texture can then be used as a uniform
 	 * sampler2D in another shader, allowing for variable data sets.
 	 *
-	 * @param {Number|Array} input 	Either a length ( ex: 1000 if this variable
-	 * is for 1000 particules ), or an array of numbers ( ex: the position x
-	 * of each of the 1000 particules ).
-	 * @param {Object} options
-	 * @param {String} options.name 	Name of the variable
-	 * @param {String} options.prefix 	Prefix for the name of the variable
-	 * @param {Number} options.defaultValue 	Value to default the data to
-	 * if the input is a length.
-	 * @param {String} options.shader 	The fragmentShader that will be used
+	 * @param {Number|Array} input 			Either a length ( ex: 1000 if
+	 * the variable is for 1000 particules ), or an array of numbers
+	 * ( ex: the position x of each of the 1000 particules ).
+	 * @param {Object} options				Options.
+	 * @param {String} options.name 		Name of the variable.
+	 * @param {String} options.prefix 		Prefix for the name of the variable
+	 * @param {Number} options.defaultValue Value to default the data to if
+	 * the input is a length.
+	 * @param {String} options.shader 		The fragmentShader that will be used
 	 * for GPGPU computations. See GPGPU.fragmentShader for an example/template.
 	 * @param {String} options.uniforms 	Uniforms used by the fragmentShader.
 	 * Note that an uniform will be created automatically, using the prefix+name
@@ -114,7 +114,7 @@ class GPGPUVariable {
 	 * Creates a data array for this variable.
 	 * @param {Number} fill 	A number to fill the data array with.
 	 * If no value is provided, all numbers will default to 0.
-	 * @returns {[Number]}		An array of numbers.
+	 * @returns {Array}		An array of numbers.
 	 */
 	createDataArray( fill ) {
 

@@ -14,6 +14,7 @@ import controls from './controls';
 import render from './render';
 import stage from './stage';
 import utils from './utils';
+import { GPGPUConstant } from './gpgpu/GPGPUConstant';
 
 /*-----------------------------------------------------------------------------/
 
@@ -39,8 +40,7 @@ const particlePositions = utils.removeDuplicateVertices( container );
 	GPGPU constants
 
 	We need to encode the positions in texture form, so we can access them
-	from the GPGPU shaders. To do this easily, we use GPGPUVariable
-	instances that will not be recomputed.
+	from the GPGPU shaders.
 
 /-----------------------------------------------------------------------------*/
 
@@ -56,9 +56,9 @@ for ( let i = 0; i < particlePositions.length; i += 3 ) {
 
 }
 
-const GPGPUstartX = new GPGPUVariable( startX );
-const GPGPUstartY = new GPGPUVariable( startY );
-const GPGPUstartZ = new GPGPUVariable( startZ );
+const GPGPUstartX = new GPGPUConstant( startX );
+const GPGPUstartY = new GPGPUConstant( startY );
+const GPGPUstartZ = new GPGPUConstant( startZ );
 
 /*-----------------------------------------------------------------------------/
 
@@ -70,9 +70,9 @@ const particleCount = particlePositions.length / 3;
 if ( config.debug ) console.log( { particleCount } );
 
 const translateUniforms = {
-	GPGPU_startX: { value: GPGPUstartX.output },
-	GPGPU_startY: { value: GPGPUstartY.output },
-	GPGPU_startZ: { value: GPGPUstartZ.output },
+	GPGPU_startX: { value: GPGPUstartX },
+	GPGPU_startY: { value: GPGPUstartY },
+	GPGPU_startZ: { value: GPGPUstartZ },
 	uCursor: { value: controls.cursor }
 };
 
