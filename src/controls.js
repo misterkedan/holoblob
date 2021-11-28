@@ -1,5 +1,8 @@
+import {
+	BoxGeometry, Mesh, MeshBasicMaterial, PlaneGeometry, Raycaster, Vector2
+} from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { BoxGeometry, Mesh, MeshBasicMaterial, PlaneGeometry, Raycaster, Vector2 } from 'three';
+
 import config from './config';
 import render from './render';
 import stage from './stage';
@@ -44,7 +47,6 @@ stage.add( cursor );
 	Event handlers
 
 /-----------------------------------------------------------------------------*/
-
 
 function onTouchStart( event ) {
 

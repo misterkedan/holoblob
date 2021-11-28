@@ -1,14 +1,25 @@
+import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { Ticker } from './misc/Ticker';
 
 import controls from './controls';
 import core from './core';
 import render from './render';
 import stage from './stage';
+import config from './config';
 
 // Setup
 
 const toUpdate = [ controls, core, render ];
 let needsResize = true;
+
+if ( config.debug ) {
+
+	let stats = new Stats();
+	stats.domElement.style.margin = '1rem';
+	document.body.appendChild( stats.domElement );
+	toUpdate.push( stats );
+
+}
 
 // Start
 
@@ -23,7 +34,7 @@ function init() {
 
 	window.addEventListener( 'resize', () => needsResize = true );
 
-	const ticker = new Ticker( animate, 60 );
+	const ticker = new Ticker( animate, 0 );
 	ticker.start();
 
 }

@@ -4,9 +4,11 @@ import {
 import { FloatPack } from './gpgpu/FloatPack';
 import { GPGPU } from './gpgpu/GPGPU';
 import { GPGPUVariable } from './gpgpu/GPGPUVariable';
+
 import GPGPU_x_frag from './glsl/GPGPU_x.frag';
 import GPGPU_y_frag from './glsl/GPGPU_y.frag';
 import GPGPU_z_frag from './glsl/GPGPU_z.frag';
+
 import config from './config';
 import controls from './controls';
 import render from './render';
@@ -30,7 +32,7 @@ const container = new SphereGeometry(
 );
 
 // We need to remove duplicate vertices to avoid duplicate particules.
-const vertices = utils.removeDuplicateVertices( container );
+const particlePositions = utils.removeDuplicateVertices( container );
 
 /*-----------------------------------------------------------------------------/
 
@@ -46,11 +48,11 @@ const startX = [];
 const startY = [];
 const startZ = [];
 
-for ( let i = 0; i < vertices.length; i += 3 ) {
+for ( let i = 0; i < particlePositions.length; i += 3 ) {
 
-	startX.push( vertices[ i ] );
-	startY.push( vertices[ i + 1 ] );
-	startZ.push( vertices[ i + 2 ] );
+	startX.push( particlePositions[ i ] );
+	startY.push( particlePositions[ i + 1 ] );
+	startZ.push( particlePositions[ i + 2 ] );
 
 }
 
@@ -64,7 +66,9 @@ const GPGPUstartZ = new GPGPUVariable( startZ );
 
 /-----------------------------------------------------------------------------*/
 
-const particleCount = vertices.length / 3;
+const particleCount = particlePositions.length / 3;
+if ( config.debug ) console.log( { particleCount } );
+
 const translateUniforms = {
 	GPGPU_startX: { value: GPGPUstartX.output },
 	GPGPU_startY: { value: GPGPUstartY.output },

@@ -1,9 +1,10 @@
 import { WebGLRenderer } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-import config from './config';
 import { DitheredUnrealBloomPass } from './misc/DitheredUnrealBloomPass';
 import { FXAAPass } from './misc/FXAAPass';
+
+import config from './config';
 import stage from './stage';
 
 // Renderer
