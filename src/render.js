@@ -7,7 +7,11 @@ import { FXAAPass } from './misc/FXAAPass';
 import config from './config';
 import stage from './stage';
 
-// Renderer
+/*-----------------------------------------------------------------------------/
+
+	Renderer
+
+/-----------------------------------------------------------------------------*/
 
 const renderer = new WebGLRenderer( {
 	powerPreference: 'high-performance',
@@ -19,10 +23,13 @@ const renderer = new WebGLRenderer( {
 const canvas = renderer.domElement;
 document.getElementById( 'main' ).appendChild( canvas );
 
-// Composer
+/*-----------------------------------------------------------------------------/
+
+	Composer
+
+/-----------------------------------------------------------------------------*/
 
 const composer = new EffectComposer( renderer );
-
 
 const passes = {
 	render: new RenderPass( stage.scene, stage.camera ),
@@ -30,7 +37,11 @@ const passes = {
 	bloom: new DitheredUnrealBloomPass( config.bloom ),
 };
 
-// Methods
+/*-----------------------------------------------------------------------------/
+
+	Functions
+
+/-----------------------------------------------------------------------------*/
 
 function init() {
 
@@ -59,7 +70,11 @@ function update() {
 
 }
 
-// Export
+/*-----------------------------------------------------------------------------/
+
+	Export
+
+/-----------------------------------------------------------------------------*/
 
 export default {
 	renderer, canvas, composer, passes,

@@ -35,6 +35,11 @@ const container = new SphereGeometry(
 // We need to remove duplicate vertices to avoid duplicate particules
 const particlePositions = utils.removeDuplicateVertices( container );
 
+// Pre-computed numbers
+const particleCount = particlePositions.length / 3;
+const textureSize = GPGPU.getTextureSize( particleCount );
+if ( config.debug ) console.log( { particleCount } );
+
 /*-----------------------------------------------------------------------------/
 
 	GPGPU constants
@@ -66,16 +71,11 @@ const GPGPU_startZ = new GPGPUConstant( startZ );
 
 /-----------------------------------------------------------------------------*/
 
-const particleCount = particlePositions.length / 3;
-if ( config.debug ) console.log( { particleCount } );
-
-const textureSize = GPGPU.getTextureSize( particleCount );
-
 const uniforms = {
 	GPGPU_startX: { value: GPGPU_startX },
 	GPGPU_startY: { value: GPGPU_startY },
 	GPGPU_startZ: { value: GPGPU_startZ },
-	uCursor: { value: controls.cursor }
+	uCursor: { value: controls.cursor.position }
 };
 
 const GPGPU_x = new GPGPUVariable( {
@@ -109,7 +109,9 @@ const particleGeometry = new EdgesGeometry( new BoxGeometry(
 	config.particleSize, config.particleSize, config.particleSize
 ) );
 
-const geometry = GPGPU.cloneGeometry( particleGeometry, particleCount, textureSize );
+const geometry = GPGPU.cloneGeometry(
+	particleGeometry, particleCount, textureSize
+);
 
 /*-----------------------------------------------------------------------------/
 
@@ -160,12 +162,18 @@ material.onBeforeCompile = ( shader ) => {
 
 /*-----------------------------------------------------------------------------/
 
-	Wrap-up
+	Final GPGPU-computed object
 
 /-----------------------------------------------------------------------------*/
 
-const lines = new LineSegments( geometry, material );
-stage.add( lines );
+const holoblob = new LineSegments( geometry, material );
+stage.add( holoblob );
+
+/*-----------------------------------------------------------------------------/
+
+	Functions
+
+/-----------------------------------------------------------------------------*/
 
 function update() {
 
@@ -174,5 +182,11 @@ function update() {
 	GPGPU_z.compute();
 
 }
+
+/*-----------------------------------------------------------------------------/
+
+	Export
+
+/-----------------------------------------------------------------------------*/
 
 export default { update };

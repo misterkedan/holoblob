@@ -7,7 +7,11 @@ import render from './render';
 import stage from './stage';
 import config from './config';
 
-// Setup
+/*-----------------------------------------------------------------------------/
+
+	App entry point
+
+/-----------------------------------------------------------------------------*/
 
 const toUpdate = [ controls, core, render ];
 let needsResize = true;
@@ -21,11 +25,13 @@ if ( config.debug ) {
 
 }
 
-// Start
-
 init();
 
-// Callbacks
+/*-----------------------------------------------------------------------------/
+
+	Functions
+
+/-----------------------------------------------------------------------------*/
 
 function init() {
 
