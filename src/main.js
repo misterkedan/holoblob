@@ -34,7 +34,8 @@ function init() {
 
 	window.addEventListener( 'resize', () => needsResize = true );
 
-	const ticker = new Ticker( animate, 0 );
+	const fps = ( config.debug ) ? 0 : 60;
+	const ticker = new Ticker( animate, fps );
 	ticker.start();
 
 }

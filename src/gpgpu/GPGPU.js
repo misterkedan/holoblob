@@ -121,10 +121,17 @@ const GPGPU = {
 
 	/-------------------------------------------------------------------------*/
 
-	cloneGeometry: ( stem, count ) => {
+	/**
+	 * Clones a geometry x times, adding a 'GPGPU_target' vec2 attribute, in
+	 * order to associate vertices with a pixel of the GPGPU data textures.
+	 * One pixel will contain the data for one clone.
+	 * @param {BufferGeometry} 	stem 	The geometry to clone.
+	 * @param {Number}			count	The number of times to clone the geometry.
+	 * @returns {BufferGeometry}		A merged geometry containing all the clones.
+	 */
+	cloneGeometry: ( stem, count, textureSize ) => {
 
-		const geometry = new BufferGeometry();
-		const textureSize = GPGPU.getTextureSize( count );
+		if ( ! textureSize ) textureSize = GPGPU.getTextureSize( count );
 
 		const verticesPerClone = stem.attributes.position.count;
 		const positionsPerClone = verticesPerClone * 3;
@@ -137,16 +144,18 @@ const GPGPU = {
 		const positions = new Float32Array( tripleCount );
 		const normals = new Float32Array( tripleCount );
 		const uvs = new Float32Array( doubleCount );
-		const references = new Float32Array( doubleCount );
+		const GPGPUtargets = new Float32Array( doubleCount );
 
 		const stemPositions = stem.attributes.position.array;
 		const stemNormals = stem.attributes.normal?.array || [];
 		const stemUVs = stem.attributes.uv?.array || [];
 
+		const geometry = new BufferGeometry();
+
 		let x = 0;
 		let y = 0;
 		let reference = 0;
-		let instance = 0;
+		let clone = 0;
 
 		let position = 0;
 		let uv = 0;
@@ -158,10 +167,10 @@ const GPGPU = {
 			if ( position === positionsPerClone ) {
 
 				position = 0;
-				instance ++;
+				clone ++;
 
-				x = ( instance % textureSize ) / textureSize;
-				y = ~ ~ ( instance / textureSize ) / textureSize;
+				x = ( clone % textureSize ) / textureSize;
+				y = ~ ~ ( clone / textureSize ) / textureSize;
 				// note : ~ ~ is an obscure, bitwise equivalent of Math.floor()
 				// not recommended in general, because it is less legible
 				// used for performance because we're dealing with large arrays
@@ -174,8 +183,8 @@ const GPGPU = {
 
 			if ( ! ( i % 3 ) ) {
 
-				references[ reference ++ ] = x;
-				references[ reference ++ ] = y;
+				GPGPUtargets[ reference ++ ] = x;
+				GPGPUtargets[ reference ++ ] = y;
 
 			}
 
@@ -193,11 +202,11 @@ const GPGPU = {
 		}
 
 		geometry.setAttribute(
-			'position',  new BufferAttribute( positions, 3 )
+			'GPGPU_target', new BufferAttribute( GPGPUtargets, 2 )
 		);
 
 		geometry.setAttribute(
-			'reference', new BufferAttribute( references, 2 )
+			'position',  new BufferAttribute( positions, 3 )
 		);
 
 		if ( stem.attributes.normals ) geometry.setAttribute(

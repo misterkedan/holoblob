@@ -11,10 +11,15 @@ class GPGPUVariable {
 	 * computations on the GPU. The output texture can then be used as a uniform
 	 * sampler2D in another shader, allowing for variable data sets.
 	 *
-	 * @param {Number|Array} input 			Either a length ( ex: 1000 if
-	 * the variable is for 1000 particules ), or an array of numbers
-	 * ( ex: the position x of each of the 1000 particules ).
 	 * @param {Object} options				Options.
+	 * @param {Number} options.length 		The length of the data set.
+	 * This will be overridden by options.data.length if options.data is defined,
+	 * and by textureSize if it is defined ( in that case, the length will be
+	 * textureSize * textureSize ).
+	 * @param {Array}  options.data			The starting data.
+	 * @param {Number} options.textureSize	The texture size of the DataTexture.
+	 * This is not required, but can be set manually to avoid recomputing the
+	 * texture size several times.
 	 * @param {String} options.name 		Name of the variable.
 	 * @param {String} options.prefix 		Prefix for the name of the variable
 	 * @param {Number} options.defaultValue Value to default the data to if
@@ -25,7 +30,10 @@ class GPGPUVariable {
 	 * Note that an uniform will be created automatically, using the prefix+name
 	 * of the variable, for the data texture current value.
 	 */
-	constructor( input, {
+	constructor( {
+		length = 1000,
+		data,
+		textureSize,
 		name = 'data',
 		prefix = 'GPGPU_',
 		defaultValue = 0,
@@ -37,25 +45,34 @@ class GPGPUVariable {
 			'Use GPUVariable.init( renderer ) before instancing.'
 		);
 
-		// DataTexture
+		// Length & texture size
 
-		const inputIsLength = ( typeof input === 'number' );
+		if ( data ) length = data.length;
+		else if ( textureSize ) length = textureSize * textureSize;
 
-		const textureSize = ( inputIsLength )
-			? GPGPU.getTextureSize( input )
-			: GPGPU.getTextureSize( input.length );
+		if ( ! textureSize ) textureSize = GPGPU.getTextureSize( length );
 		this.textureSize = textureSize;
 
-		this.dataTexture = GPGPU.createDataTexture( textureSize );
+		// DataTexture
 
-		if ( inputIsLength ) input = this.createDataArray( defaultValue );
-		if ( ! inputIsLength || defaultValue ) FloatPack.pack( input, this.buffer );
+		this.dataTexture = GPGPU.createDataTexture( textureSize );
+		if ( data ) {
+
+			this.write( data );
+
+		} else {
+
+			data = this.createDataArray( defaultValue );
+			if ( defaultValue ) this.write( data );
+
+		}
 
 		// Uniforms
 
 		this.name = ( prefix ) ? prefix + name : name;
-		uniforms[ this.name ] = { value: this.dataTexture };
+
 		this.uniforms = uniforms;
+		this.uniforms[ this.name ] = { value: this.dataTexture };
 
 		// ShaderMaterial
 
@@ -141,6 +158,16 @@ class GPGPUVariable {
 		FloatPack.unpack( this.buffer, data );
 
 		return data;
+
+	}
+
+	/**
+	 * Encode numeric data in this instance's DataTexture.
+	 * @param {Array} data 		An array of numbers to encode.
+	 */
+	write( data ) {
+
+		FloatPack.pack( data, this.buffer );
 
 	}
 
