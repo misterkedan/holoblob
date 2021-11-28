@@ -1,6 +1,6 @@
-# GPGPU Demo
+# Holoblob
 
-Simple GPGPU demo.  
+It's blobby.
 
 ***
 *Pierre Keda - 2021*
