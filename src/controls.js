@@ -6,11 +6,23 @@ import stage from './stage';
 
 /*-----------------------------------------------------------------------------/
 
+	Orbit
+
+/-----------------------------------------------------------------------------*/
+
+const orbit = new OrbitControls( stage.camera, render.canvas );
+orbit.enableDamping = true;
+orbit.autoRotate = true;
+orbit.dampingFactor = config.orbit.dampingFactor;
+orbit.autoRotateSpeed = config.orbit.autoRotateSpeed;
+
+/*-----------------------------------------------------------------------------/
+
 	Setup
 
 /-----------------------------------------------------------------------------*/
 
-const pointer = new Vector2();
+const pointer = new Vector2( - 1, - 1 );
 const raycaster = new Raycaster();
 
 const hitboxSize = config.containerSize * 10;
@@ -78,11 +90,13 @@ function init() {
 	const deviceHasTouch = !! navigator.maxTouchPoints;
 	//const deviceIsTablet = deviceHasTouch && Math.max( window.innerWidth, window.innerHeight ) > 1000;
 	//const deviceIsMobile = deviceHasTouch && ! deviceIsTablet;
-	if ( ! deviceHasTouch ) new OrbitControls( stage.camera, render.canvas );
+	if ( deviceHasTouch ) orbit.enabled = false;
 
 }
 
 function update() {
+
+	if ( orbit ) orbit.update();
 
 	hitbox.quaternion.copy( stage.camera.quaternion );
 	raycaster.setFromCamera( pointer, stage.camera );
