@@ -24,8 +24,8 @@ function checkHardware() {
 const GPGPU = {
 
 	/**
-	 * Initiates the GPGPU class with a three.js renderer.
-	 * This needs to be done ( once only ) before creating any GPGPUVariable instance.
+	 * Initiates the GPGPU class with a three.js renderer. This needs to be done
+	 * ( once only ) before creating any GPGPUVariable instance.
 	 * @param {WebGLRenderer}	renderer 	A WebGLRenderer instance
 	 */
 	init: ( renderer ) => {
@@ -82,7 +82,7 @@ const GPGPU = {
 
 	/-------------------------------------------------------------------------*/
 
-	createTexture: ( size ) => new DataTexture(
+	createDataTexture: ( size ) => new DataTexture(
 		new Uint8Array( size * size * 4 ),	// data
 		size, 				// width
 		size,				// height
