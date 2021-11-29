@@ -96,7 +96,7 @@ class GPGPUVariable {
 	 * Process the data in the fragment shader.
 	 * The result can then be accessed via this.output.
 	 */
-	compute() {
+	update() {
 
 		// Toggling between 2 RenderTargets is required to avoid
 		// a framebuffer feedback loop

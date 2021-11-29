@@ -1,3 +1,18 @@
+/**
+ * @author Pierre Keda
+ *
+ * three.js GPGPU
+ *
+ * Based on https://threejs.org/examples/?q=gpgpu#webgl_gpgpu_birds
+ * And https://github.com/mrdoob/three.js/blob/dev/examples/jsm/misc/GPUComputationRenderer.js
+ *
+ * Basic usage :
+ * GPGPU.init( renderer );
+ * const variable = new GPGPUVariable();
+ * variable.update();
+ * uniforms.variable = { value: variable.output };
+ */
+
 import {
 	BufferAttribute, BufferGeometry, Camera, ClampToEdgeWrapping, DataTexture,
 	Mesh, NearestFilter, PlaneGeometry, RGBAFormat, Scene, Uint32BufferAttribute,
@@ -123,8 +138,8 @@ const GPGPU = {
 
 	/**
 	 * Clones a geometry x times, adding a 'GPGPU_target' vec2 attribute, in
-	 * order to associate vertices with a pixel of the GPGPU data textures.
-	 * One pixel will contain the data for one clone.
+	 * order to associate vertices with a texel of the GPGPUVariable output textures.
+	 * One texel will contain the data for one clone.
 	 * @param {BufferGeometry} 	stem 	The geometry to clone.
 	 * @param {Number}			count	The number of times to clone the geometry.
 	 * @returns {BufferGeometry}		A merged geometry containing all the clones.

@@ -1,3 +1,12 @@
+/**
+ * @author Pierre Keda
+ *
+ * Functions to encode/decode 32 bit floating point numbers in RGBA8 texels.
+ * This allows to store GPU computed data in basic textures, which is less
+ * convenient than float/half-float textures, but compatible with way more
+ * devices, especially mobiles.
+ */
+
 const glsl = /*glsl*/`
 
 vec4 packFloat( float value ) {

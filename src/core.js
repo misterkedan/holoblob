@@ -68,6 +68,8 @@ const GPGPU_startZ = new GPGPUConstant( startZ );
 
 	GPGPU variables
 
+	See the shaders in /glsl/ to see exactly how the positions are computed.
+
 /-----------------------------------------------------------------------------*/
 
 const uniforms = {
@@ -102,14 +104,21 @@ const GPGPU_z = new GPGPUVariable( {
 
 	Geometry
 
+	Here the particles will be cloned cubes ( one per vertex of the container
+	sphere ), all merged in a single geometry.
+
 /-----------------------------------------------------------------------------*/
 
 const particleGeometry = new EdgesGeometry( new BoxGeometry(
-	config.particleSize, config.particleSize, config.particleSize
+	config.particleSize,
+	config.particleSize,
+	config.particleSize
 ) );
 
 const geometry = GPGPU.cloneGeometry(
-	particleGeometry, particleCount, textureSize
+	particleGeometry,
+	particleCount,
+	textureSize
 );
 
 if ( config.debug ) {
@@ -123,6 +132,11 @@ if ( config.debug ) {
 
 	Material
 
+	The final material is modified before compilation, to apply the GPGPU
+	computed positions to the vertices.
+
+	Otherwise, all the cubes cloned above would be at ( 0, 0, 0 ).
+
 /-----------------------------------------------------------------------------*/
 
 const material = new LineBasicMaterial( {
@@ -131,38 +145,38 @@ const material = new LineBasicMaterial( {
 	transparent: true,
 } );
 
-const declarations = /*glsl*/`
-attribute vec2 GPGPU_target;
-uniform sampler2D GPGPU_x;
-uniform sampler2D GPGPU_y;
-uniform sampler2D GPGPU_z;
-${ FloatPack.glsl }
-`;
-
-const modifications = /*glsl*/`
-	transformed.x += unpackFloat( texture2D( GPGPU_x, GPGPU_target ) );
-	transformed.y += unpackFloat( texture2D( GPGPU_y, GPGPU_target ) );
-	transformed.z += unpackFloat( texture2D( GPGPU_z, GPGPU_target ) );
-`;
-
 material.onBeforeCompile = ( shader ) => {
 
 	shader.uniforms.GPGPU_x = { value: GPGPU_x.output };
 	shader.uniforms.GPGPU_y = { value: GPGPU_y.output };
 	shader.uniforms.GPGPU_z = { value: GPGPU_z.output };
 
+	// Definitions of the GPGPU attributes/uniforms
+
+	const insertA = /*glsl*/`
+	attribute vec2 GPGPU_target;
+	uniform sampler2D GPGPU_x;
+	uniform sampler2D GPGPU_y;
+	uniform sampler2D GPGPU_z;
+	${ FloatPack.glsl }
+	`;
+
 	const tokenA = 'void main()';
+
+	shader.vertexShader = shader.vertexShader.replace( tokenA, insertA + tokenA );
+
+	// Modification of the vertices positions
+	// Note: "transformed" is a position variable used in three.js material shaders
+
+	const insertB = /*glsl*/`
+		transformed.x += unpackFloat( texture2D( GPGPU_x, GPGPU_target ) );
+		transformed.y += unpackFloat( texture2D( GPGPU_y, GPGPU_target ) );
+		transformed.z += unpackFloat( texture2D( GPGPU_z, GPGPU_target ) );
+	`;
+
 	const tokenB = '#include <begin_vertex>';
 
-	shader.vertexShader = shader.vertexShader.replace(
-		tokenA,
-		declarations + tokenA
-	);
-
-	shader.vertexShader = shader.vertexShader.replace(
-		tokenB,
-		tokenB + modifications
-	);
+	shader.vertexShader = shader.vertexShader.replace( tokenB, tokenB + insertB );
 
 };
 
@@ -172,8 +186,8 @@ material.onBeforeCompile = ( shader ) => {
 
 /-----------------------------------------------------------------------------*/
 
-const holoblob = new LineSegments( geometry, material );
-stage.add( holoblob );
+const blob = new LineSegments( geometry, material );
+stage.add( blob );
 
 /*-----------------------------------------------------------------------------/
 
@@ -181,11 +195,12 @@ stage.add( holoblob );
 
 /-----------------------------------------------------------------------------*/
 
+// Called on every frame, from the main.js module.
 function update() {
 
-	GPGPU_x.compute();
-	GPGPU_y.compute();
-	GPGPU_z.compute();
+	GPGPU_x.update();
+	GPGPU_y.update();
+	GPGPU_z.update();
 
 }
 
