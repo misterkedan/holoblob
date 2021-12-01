@@ -1,6 +1,7 @@
 import {
 	BoxGeometry, EdgesGeometry, LineBasicMaterial, LineSegments, SphereGeometry,
 } from 'three';
+
 import { FloatPack } from './gpgpu/FloatPack';
 import { GPGPU } from './gpgpu/GPGPU';
 import { GPGPUConstant } from './gpgpu/GPGPUConstant';
@@ -70,33 +71,45 @@ const GPGPU_startZ = new GPGPUConstant( startZ );
 
 	See the shaders in /glsl/ to see exactly how the positions are computed.
 
+	The null uniforms will be set in the update() function later on.
+
 /-----------------------------------------------------------------------------*/
 
-const uniforms = {
-	GPGPU_startX: { value: GPGPU_startX },
-	GPGPU_startY: { value: GPGPU_startY },
-	GPGPU_startZ: { value: GPGPU_startZ },
-	uCursor: { value: controls.cursor.position }
-};
+const uCursor = { value: controls.cursor.position };
 
 const GPGPU_x = new GPGPUVariable( {
 	name: 'x',
 	shader: GPGPU_x_shader,
-	uniforms,
+	uniforms: {
+		GPGPU_startX: { value: GPGPU_startX },
+		GPGPU_y: { value: null },
+		GPGPU_z: { value: null },
+		uCursor,
+	},
 	textureSize,
 } );
 
 const GPGPU_y = new GPGPUVariable( {
 	name: 'y',
 	shader: GPGPU_y_shader,
-	uniforms,
+	uniforms: {
+		GPGPU_startY: { value: GPGPU_startY },
+		GPGPU_x: { value: null },
+		GPGPU_z: { value: null },
+		uCursor,
+	},
 	textureSize,
 } );
 
 const GPGPU_z = new GPGPUVariable( {
 	name: 'z',
 	shader: GPGPU_z_shader,
-	uniforms,
+	uniforms: {
+		GPGPU_startZ: { value: GPGPU_startZ },
+		GPGPU_x: { value: null },
+		GPGPU_y: { value: null },
+		uCursor,
+	},
 	textureSize,
 } );
 
@@ -135,7 +148,7 @@ if ( config.debug ) {
 	The final material is modified before compilation, to apply the GPGPU
 	computed positions to the vertices.
 
-	Otherwise, all the cubes cloned above would be at ( 0, 0, 0 ).
+	Otherwise, all the cloned cubes would be at ( 0, 0, 0 ).
 
 /-----------------------------------------------------------------------------*/
 
@@ -184,6 +197,8 @@ material.onBeforeCompile = ( shader ) => {
 
 	Final GPGPU-computed object
 
+	It's blobby.
+
 /-----------------------------------------------------------------------------*/
 
 const blob = new LineSegments( geometry, material );
@@ -193,14 +208,27 @@ stage.add( blob );
 
 	Functions
 
+	update() is called on every frame, from the main.js module.
+
 /-----------------------------------------------------------------------------*/
 
-// Called on every frame, from the main.js module.
 function update() {
 
 	GPGPU_x.update();
 	GPGPU_y.update();
 	GPGPU_z.update();
+
+	// For co-dependent GPGPUVariables, an uniform refresh is required after
+	// updates
+
+	GPGPU_x.uniforms.GPGPU_y.value = GPGPU_y.output;
+	GPGPU_x.uniforms.GPGPU_z.value = GPGPU_z.output;
+
+	GPGPU_y.uniforms.GPGPU_x.value = GPGPU_x.output;
+	GPGPU_y.uniforms.GPGPU_z.value = GPGPU_z.output;
+
+	GPGPU_z.uniforms.GPGPU_x.value = GPGPU_x.output;
+	GPGPU_z.uniforms.GPGPU_y.value = GPGPU_y.output;
 
 }
 

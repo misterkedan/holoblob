@@ -2,9 +2,9 @@ import { FloatPack } from '../gpgpu/FloatPack';
 
 export default /*glsl*/`
 
+uniform sampler2D GPGPU_x;
+uniform sampler2D GPGPU_y;
 uniform sampler2D GPGPU_z;
-uniform sampler2D GPGPU_startX;
-uniform sampler2D GPGPU_startY;
 uniform sampler2D GPGPU_startZ;
 uniform vec3 uCursor;
 
@@ -13,22 +13,20 @@ ${ FloatPack.glsl }
 void main() {
 	
 	vec2 uv = gl_FragCoord.xy / resolution.xy;
-	float z = unpackFloat( texture2D( GPGPU_z, uv ) );
 
-	float startX = unpackFloat( texture2D( GPGPU_startX, uv ) );
-	float startY = unpackFloat( texture2D( GPGPU_startY, uv ) );
+	float x = unpackFloat( texture2D( GPGPU_x, uv ) );
+	float y = unpackFloat( texture2D( GPGPU_y, uv ) );
+	float z = unpackFloat( texture2D( GPGPU_z, uv ) );
 	float startZ = unpackFloat( texture2D( GPGPU_startZ, uv ) );
 
-	float multiplier = -0.5;
-	vec3 diff = uCursor - vec3( startX, startY, z );
-	float dist = pow( length( diff ), 3.0 );
-	float force = multiplier * 6.67408 / dist;
-	force = clamp( force, -5.0, 5.0 );
+	vec3 diff = uCursor - vec3( x, y, z );
 
-	float target = mix( startZ, uCursor.z, force );
+	const float G = 6.674;
+	float force = -1.0 * G / pow( length( diff ), 3.0 );
+	float targetZ = mix( startZ, uCursor.z, clamp( force, -G, G ) );
 
-	float lerpSpeed = 0.03;
-	z = mix( z, target, lerpSpeed );
+	const float lerpSpeed = 0.03;
+	z = mix( z, targetZ, lerpSpeed );
 
 	gl_FragColor = packFloat( z );
 
