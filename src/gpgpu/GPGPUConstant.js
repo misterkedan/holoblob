@@ -1,5 +1,5 @@
+import { Uniform } from 'three';
 import { GPGPU } from './GPGPU';
-import { FloatPack } from './FloatPack';
 
 class GPGPUConstant {
 
@@ -9,13 +9,13 @@ class GPGPUConstant {
 	 * @param {Array} data 		An array of numbers to encode in texture form.
 	 * @returns {DataTexture}	The encoded numbers.
 	 */
-	constructor( data ) {
+	constructor( data, textureSize ) {
 
-		const textureSize = GPGPU.getTextureSize( data.length );
+		if ( ! textureSize ) textureSize = GPGPU.getTextureSize( data.length );
 		const dataTexture = GPGPU.createDataTexture( textureSize );
-		FloatPack.pack( data, dataTexture.image.data );
-
-		return dataTexture;
+		dataTexture.needsUpdate = true;
+		GPGPU.FloatPack.pack( data, dataTexture.image.data );
+		return new Uniform( dataTexture );
 
 	}
 

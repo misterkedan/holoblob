@@ -64,7 +64,7 @@ function resize( width, height ) {
 
 }
 
-function update() {
+function tick() {
 
 	composer.render();
 
@@ -78,5 +78,5 @@ function update() {
 
 export default {
 	renderer, canvas, composer, passes,
-	init, resize, update
+	init, resize, tick
 };

@@ -1,12 +1,11 @@
 {
   "name": "holoblob",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "It's blobby.",
   "author": "Pierre Keda",
   "license": "MIT",
   "dependencies": {
-    "dat.gui": "^0.7.7",
-    "three": "^0.134.0"
+    "three": "^0.136.0"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
@@ -24,6 +23,7 @@
     "build": "webpack --mode production",
     "start": "webpack serve --mode development"
   },
+  "browserslist": [ "since 2010" ],
   "main": "src/main.js",
   "private": true
 }

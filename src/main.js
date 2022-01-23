@@ -1,4 +1,3 @@
-import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { Ticker } from './misc/Ticker';
 
 import controls from './controls';
@@ -13,17 +12,9 @@ import config from './config';
 
 /-----------------------------------------------------------------------------*/
 
-const toUpdate = [ controls, core, render ];
+const toTick = [ controls, core, render ];
 let needsResize = true;
 
-if ( config.debug ) {
-
-	let stats = new Stats();
-	stats.domElement.style.margin = '1rem';
-	document.body.appendChild( stats.domElement );
-	toUpdate.push( stats );
-
-}
 
 init();
 
@@ -41,7 +32,7 @@ function init() {
 	window.addEventListener( 'resize', () => needsResize = true );
 
 	const fps = ( config.debug ) ? 0 : 60;
-	const ticker = new Ticker( animate, fps );
+	const ticker = new Ticker( tick, fps );
 	ticker.start();
 
 }
@@ -55,10 +46,10 @@ function resize() {
 
 }
 
-function animate( time, delta ) {
+function tick( delta, time ) {
 
 	if ( needsResize ) resize();
 
-	toUpdate.forEach( item => item.update( time, delta ) );
+	toTick.forEach( item => item.tick( delta, time ) );
 
 }

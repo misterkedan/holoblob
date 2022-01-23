@@ -48,22 +48,28 @@ stage.add( cursor );
 
 /-----------------------------------------------------------------------------*/
 
-function onTouchStart( event ) {
+//function onTouchStart( event ) {
 
-	event.preventDefault();
+//	event.preventDefault();
 
-}
+//}
 
-function onPointerUp() {
+function onMouseUp() {
 
 	console.log( cursor.position );
 
 }
 
-function onPointerMove( event ) {
+function onMouseMove( event ) {
 
 	pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 	pointer.y = 1 - ( event.clientY / window.innerHeight ) * 2;
+
+}
+
+function onTouchMove( event ) {
+
+	onMouseMove( event.targetTouches[ 0 ] );
 
 }
 
@@ -75,12 +81,13 @@ function onPointerMove( event ) {
 
 function init() {
 
-	render.canvas.addEventListener( 'touchstart', onTouchStart );
-	render.canvas.addEventListener( 'pointermove', onPointerMove );
+	//render.canvas.addEventListener( 'touchstart', onTouchStart );
+	render.canvas.addEventListener( 'mousemove', onMouseMove );
+	render.canvas.addEventListener( 'touchmove', onTouchMove );
 
 	if ( config.debug ) {
 
-		render.canvas.addEventListener( 'pointerup', onPointerUp );
+		render.canvas.addEventListener( 'mouseup', onMouseUp );
 
 	} else {
 
@@ -96,7 +103,7 @@ function init() {
 
 }
 
-function update() {
+function tick() {
 
 	if ( orbit ) orbit.update();
 
@@ -113,4 +120,4 @@ function update() {
 
 /-----------------------------------------------------------------------------*/
 
-export default { init, update, cursor };
+export default { init, tick, cursor };

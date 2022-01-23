@@ -1,4 +1,4 @@
-import { ShaderMaterial } from 'three';
+import { ShaderMaterial, Uniform } from 'three';
 import { GPGPU } from './GPGPU';
 import { FloatPack } from './FloatPack';
 
@@ -31,12 +31,12 @@ class GPGPUVariable {
 	 * of the variable, for the data texture current value.
 	 */
 	constructor( {
-		length = 1000,
 		data,
+		defaultValue,
 		textureSize,
+		length = 65536, // 256 x 256
 		name = 'data',
 		prefix = 'GPGPU_',
-		defaultValue = 0,
 		shader = GPGPUVariable.fragmentShader,
 		uniforms = {}
 	} = {} ) {
@@ -53,9 +53,17 @@ class GPGPUVariable {
 		if ( ! textureSize ) textureSize = GPGPU.getTextureSize( length );
 		this.textureSize = textureSize;
 
+		// RenderTarget x2
+
+		this.rt1 = GPGPU.createRenderTarget( textureSize );
+		this.rt2 = GPGPU.createRenderTarget( textureSize );
+		this.renderTarget = this.rt1;
+
 		// DataTexture
 
 		this.dataTexture = GPGPU.createDataTexture( textureSize );
+		this.dataTexture.needsUpdate = true;
+
 		if ( data ) {
 
 			this.write( data );
@@ -69,10 +77,11 @@ class GPGPUVariable {
 
 		// Uniforms
 
-		this.name = ( prefix ) ? prefix + name : name;
+		this.output = new Uniform( this.dataTexture );
 
+		this.name = ( prefix ) ? prefix + name : name;
 		this.uniforms = uniforms;
-		this.uniforms[ this.name ] = { value: this.dataTexture };
+		this.uniforms[ this.name ] = this.output;
 
 		// ShaderMaterial
 
@@ -83,12 +92,6 @@ class GPGPUVariable {
 		} );
 		const sizeToFixed = textureSize.toFixed( 1 );
 		this.material.defines.resolution = `vec2( ${sizeToFixed}, ${sizeToFixed} )`;
-
-		// RenderTarget x2
-
-		this.rt1 = GPGPU.createRenderTarget( textureSize );
-		this.rt2 = GPGPU.createRenderTarget( textureSize );
-		this.renderTarget = this.rt1;
 
 	}
 
@@ -104,7 +107,7 @@ class GPGPUVariable {
 			? this.rt2 : this.rt1;
 
 		GPGPU.render( this.material, this.renderTarget );
-		this.material.uniforms[ this.name ].value = this.renderTarget.texture;
+		this.output.value = this.renderTarget.texture;
 
 	}
 
@@ -180,12 +183,6 @@ class GPGPUVariable {
 	get buffer() {
 
 		return this.dataTexture.image.data;
-
-	}
-
-	get output() {
-
-		return this.material.uniforms[ this.name ].value;
 
 	}
 

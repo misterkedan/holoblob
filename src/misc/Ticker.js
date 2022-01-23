@@ -21,9 +21,9 @@ class Ticker {
 		this.elapsed = 0;
 
 		this._last = 0;
-		this._delta = 0;
+		this._deltaOffset = 0;
 		this._isPlaying = false;
-		this._tick = this.tick.bind( this );
+		this._update = this.update.bind( this );
 
 	}
 
@@ -67,7 +67,7 @@ class Ticker {
 
 	/*-------------------------------------------------------------------------/
 
-		Animation
+		Playback control
 
 	/-------------------------------------------------------------------------*/
 
@@ -80,7 +80,7 @@ class Ticker {
 	start() {
 
 		this._last = this.now;
-		this._delta = 0;
+		this._deltaOffset = 0;
 		this._isPlaying = true;
 		this.requestFrame();
 
@@ -99,42 +99,51 @@ class Ticker {
 
 	}
 
-	tick() {
+	/*-------------------------------------------------------------------------/
+
+		Animation
+
+	/-------------------------------------------------------------------------*/
+
+	update() {
 
 		if ( this.isPlaying ) this.requestFrame();
 		else return;
 
-		const { now } = this;
-		let delta = Math.min( Ticker.maxDelta, now - this._last );
-
-		this._last = now;
-		this._delta += delta;
+		const delta = Math.min( this.now - this._last, Ticker.maxDelta );
+		this._last = this.now;
 		this.elapsed += delta;
 
-		let diff = this._frameDuration - this._delta;
+		// FPS uncapped or higher than actual framerate
+		if ( delta >= this._frameDuration ) return this.tick( delta );
+
+		// FPS cap + offset
+		this._deltaOffset += delta;
+		const diff = this._frameDuration - this._deltaOffset;
 		if ( diff <= 0 ) {
 
-			const normalizedDelta = this._frameDuration || delta;
-
-			this.callbacks.forEach(
-				callback => callback.call( this, this.elapsed, normalizedDelta )
-			);
-
-			this._delta = Math.abs( diff );
+			this.tick( this._frameDuration );
+			this._deltaOffset = Math.abs( diff ) % this._frameDuration;
 
 		}
 
 	}
 
+	tick( delta ) {
+
+		this.callbacks.forEach( callback => callback( delta, this.elapsed ) );
+
+	}
+
 	requestFrame() {
 
-		requestAnimationFrame( this._tick );
+		requestAnimationFrame( this._update );
 
 	}
 
 	/*-------------------------------------------------------------------------/
 
-		Getters/Setters
+		Getters & Setters
 
 	/-------------------------------------------------------------------------*/
 
@@ -171,7 +180,7 @@ class Ticker {
 
 }
 
-Ticker.maxDelta = 100; // 10fps
+Ticker.maxDelta = 100; // 100ms = 10fps
 Ticker.time = Date || performance;
 
 export { Ticker };

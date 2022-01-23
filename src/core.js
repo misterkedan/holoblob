@@ -1,12 +1,16 @@
 import {
-	BoxGeometry, EdgesGeometry, LineBasicMaterial, LineSegments, SphereGeometry,
+	BoxGeometry,
+	EdgesGeometry,
+	Float32BufferAttribute,
+	InstancedBufferAttribute,
+	InstancedBufferGeometry,
+	LineBasicMaterial,
+	LineSegments,
+	SphereGeometry,
+	Uniform,
 } from 'three';
 
-import { FloatPack } from './gpgpu/FloatPack';
 import { GPGPU } from './gpgpu/GPGPU';
-import { GPGPUConstant } from './gpgpu/GPGPUConstant';
-import { GPGPUVariable } from './gpgpu/GPGPUVariable';
-
 import GPGPU_x_shader from './glsl/GPGPU_x.frag';
 import GPGPU_y_shader from './glsl/GPGPU_y.frag';
 import GPGPU_z_shader from './glsl/GPGPU_z.frag';
@@ -36,9 +40,11 @@ const container = new SphereGeometry(
 // We need to remove duplicate vertices to avoid duplicate particules
 const particlePositions = utils.removeDuplicateVertices( container );
 
-// Pre-computed numbers
+// The GPGPU object needs a maximum count in order to compute
+// the size of the data texture it will use
 const particleCount = particlePositions.length / 3;
-const textureSize = GPGPU.getTextureSize( particleCount );
+
+const gpgpu = new GPGPU( particleCount );
 
 /*-----------------------------------------------------------------------------/
 
@@ -61,9 +67,9 @@ for ( let i = 0; i < particlePositions.length; i += 3 ) {
 
 }
 
-const GPGPU_startX = new GPGPUConstant( startX );
-const GPGPU_startY = new GPGPUConstant( startY );
-const GPGPU_startZ = new GPGPUConstant( startZ );
+gpgpu.addConstant( 'startX', startX );
+gpgpu.addConstant( 'startY', startY );
+gpgpu.addConstant( 'startZ', startZ );
 
 /*-----------------------------------------------------------------------------/
 
@@ -75,43 +81,38 @@ const GPGPU_startZ = new GPGPUConstant( startZ );
 
 /-----------------------------------------------------------------------------*/
 
-const uCursor = { value: controls.cursor.position };
+const uCursor = new Uniform( controls.cursor.position );
 
-const GPGPU_x = new GPGPUVariable( {
-	name: 'x',
+gpgpu.addVariable( 'x', {
 	shader: GPGPU_x_shader,
 	uniforms: {
-		GPGPU_startX: { value: GPGPU_startX },
-		GPGPU_y: { value: null },
-		GPGPU_z: { value: null },
+		GPGPU_startX: gpgpu.startX,
 		uCursor,
 	},
-	textureSize,
 } );
 
-const GPGPU_y = new GPGPUVariable( {
-	name: 'y',
+gpgpu.addVariable( 'y', {
 	shader: GPGPU_y_shader,
 	uniforms: {
-		GPGPU_startY: { value: GPGPU_startY },
-		GPGPU_x: { value: null },
-		GPGPU_z: { value: null },
+		GPGPU_startY: gpgpu.startY,
 		uCursor,
 	},
-	textureSize,
 } );
 
-const GPGPU_z = new GPGPUVariable( {
-	name: 'z',
+gpgpu.addVariable( 'z', {
 	shader: GPGPU_z_shader,
 	uniforms: {
-		GPGPU_startZ: { value: GPGPU_startZ },
-		GPGPU_x: { value: null },
-		GPGPU_y: { value: null },
+		GPGPU_startZ: gpgpu.startZ,
 		uCursor,
 	},
-	textureSize,
 } );
+
+gpgpu.assign( 'x', 'y' );
+gpgpu.assign( 'x', 'z' );
+gpgpu.assign( 'y', 'x' );
+gpgpu.assign( 'y', 'z' );
+gpgpu.assign( 'z', 'x' );
+gpgpu.assign( 'z', 'y' );
 
 /*-----------------------------------------------------------------------------/
 
@@ -122,17 +123,41 @@ const GPGPU_z = new GPGPUVariable( {
 
 /-----------------------------------------------------------------------------*/
 
-const particleGeometry = new EdgesGeometry( new BoxGeometry(
+const textureSize = gpgpu.textureSize;
+const targets = new Float32Array( particleCount * 2 );
+
+for ( let i = 0, j = 0; i < particleCount; i ++ ) {
+
+	targets[ j ++ ] = ( i % textureSize ) / textureSize;
+	targets[ j ++ ] = ~ ~ ( i / textureSize ) / textureSize;
+
+}
+
+// Create geometries we will use
+
+const baseGeometry = new BoxGeometry(
 	config.particleSize,
 	config.particleSize,
 	config.particleSize
-) );
-
-const geometry = GPGPU.cloneGeometry(
-	particleGeometry,
-	particleCount,
-	textureSize
 );
+const particleGeometry = new EdgesGeometry( baseGeometry );
+
+// Create the final geometry
+
+const geometry = new InstancedBufferGeometry();
+geometry.setAttribute(
+	'position',
+	new Float32BufferAttribute().copy( particleGeometry.attributes.position )
+);
+geometry.setAttribute(
+	'GPGPU_target',
+	new InstancedBufferAttribute( targets, 2 )
+);
+
+// Clean-up
+
+baseGeometry.dispose();
+particleGeometry.dispose();
 
 if ( config.debug ) {
 
@@ -148,8 +173,6 @@ if ( config.debug ) {
 	The final material is modified before compilation, to apply the GPGPU
 	computed positions to the vertices.
 
-	Otherwise, all the cloned cubes would be at ( 0, 0, 0 ).
-
 /-----------------------------------------------------------------------------*/
 
 const material = new LineBasicMaterial( {
@@ -160,9 +183,9 @@ const material = new LineBasicMaterial( {
 
 material.onBeforeCompile = ( shader ) => {
 
-	shader.uniforms.GPGPU_x = { value: GPGPU_x.output };
-	shader.uniforms.GPGPU_y = { value: GPGPU_y.output };
-	shader.uniforms.GPGPU_z = { value: GPGPU_z.output };
+	shader.uniforms.GPGPU_x = gpgpu.x;
+	shader.uniforms.GPGPU_y = gpgpu.y;
+	shader.uniforms.GPGPU_z = gpgpu.z;
 
 	// Definitions of the GPGPU attributes/uniforms
 
@@ -171,7 +194,7 @@ material.onBeforeCompile = ( shader ) => {
 	uniform sampler2D GPGPU_x;
 	uniform sampler2D GPGPU_y;
 	uniform sampler2D GPGPU_z;
-	${ FloatPack.glsl }
+	${ GPGPU.FloatPack.glsl }
 	`;
 
 	const tokenA = 'void main()';
@@ -212,23 +235,9 @@ stage.add( blob );
 
 /-----------------------------------------------------------------------------*/
 
-function update() {
+function tick() {
 
-	GPGPU_x.update();
-	GPGPU_y.update();
-	GPGPU_z.update();
-
-	// For co-dependent GPGPUVariables, an uniform refresh is required after
-	// updates
-
-	GPGPU_x.uniforms.GPGPU_y.value = GPGPU_y.output;
-	GPGPU_x.uniforms.GPGPU_z.value = GPGPU_z.output;
-
-	GPGPU_y.uniforms.GPGPU_x.value = GPGPU_x.output;
-	GPGPU_y.uniforms.GPGPU_z.value = GPGPU_z.output;
-
-	GPGPU_z.uniforms.GPGPU_x.value = GPGPU_x.output;
-	GPGPU_z.uniforms.GPGPU_y.value = GPGPU_y.output;
+	gpgpu.tick();
 
 }
 
@@ -238,4 +247,4 @@ function update() {
 
 /-----------------------------------------------------------------------------*/
 
-export default { update };
+export default { tick };

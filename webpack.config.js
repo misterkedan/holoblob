@@ -24,6 +24,9 @@ let config = {
 			}
 		]
 	},
+	externals: {
+		three: 'THREE'
+	},
 };
 
 module.exports = ( env, argv ) => {
@@ -47,10 +50,6 @@ module.exports = ( env, argv ) => {
 	return {
 		...config,
 		mode: 'production',
-		externals: {
-			'dat.gui': 'dat.gui',
-			three: 'THREE'
-		},
 		optimization: {
 			minimize: true,
 			usedExports: true,

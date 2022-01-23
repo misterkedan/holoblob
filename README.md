@@ -2,11 +2,11 @@
 
 It's blobby.
 
-![preview](preview.png)
+![preview](preview.gif)
 
-Simple three.js GPGPU interactive demo.  
+[Live](https://pierrekeda.com/sketches/2021/holoblob)
 
-https://pierrekeda.github.io/holoblob/
+Basic three.js GPGPU interactive demo.  
 
 ***
 *Pierre Keda - 2021*

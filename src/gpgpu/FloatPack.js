@@ -8,7 +8,6 @@
  */
 
 const glsl = /*glsl*/`
-
 vec4 packFloat( float value ) {
 
 	if ( value == 0.0 ) return vec4( 0.0, 0.0, 0.0, 0.0 );
@@ -53,9 +52,7 @@ float unpackFloat( vec4 value ) {
 		+ floor( a / 2.0 ) / 8388608.0;
 	return sign * mantissa * exp2( exponent );
 
-}
-
-`;
+}`;
 
 function pack( data, buffer ) {
 
