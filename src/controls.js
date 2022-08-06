@@ -73,6 +73,19 @@ function onTouchMove( event ) {
 
 }
 
+function onKeyUp( event ) {
+
+	if ( event.key === 'h' ) {
+
+		const footer = document.getElementById( 'footer' );
+		footer.style.visibility = ( footer.style.visibility === 'hidden' )
+			? 'visible'
+			: 'hidden';
+
+	}
+
+}
+
 /*-----------------------------------------------------------------------------/
 
 	Functions
@@ -84,6 +97,7 @@ function init() {
 	//render.canvas.addEventListener( 'touchstart', onTouchStart );
 	render.canvas.addEventListener( 'mousemove', onMouseMove );
 	render.canvas.addEventListener( 'touchmove', onTouchMove );
+	window.addEventListener( 'keyup', onKeyUp );
 
 	if ( config.debug ) {
 

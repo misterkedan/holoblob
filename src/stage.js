@@ -22,7 +22,8 @@ const near = 0.1;
 const far = 1000;
 
 const camera = new PerspectiveCamera( fov, aspect, near, far );
-camera.position.set( 0, 0, 20 );
+const z = ( window.innerWidth / window.innerHeight > 1 ) ? 15 : 20;
+camera.position.set( 0, 0, z );
 camera.lookAt( 0, 0, 0 );
 
 /*-----------------------------------------------------------------------------/
