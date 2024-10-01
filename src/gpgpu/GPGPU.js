@@ -1,5 +1,5 @@
 /**
- * @author Pierre Keda
+ * @author Kedan
  *
  * Float-packed three.js GPGPU
  *

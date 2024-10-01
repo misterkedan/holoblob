@@ -1,8 +1,8 @@
 {
   "name": "holoblob",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "It's blobby.",
-  "author": "Pierre Keda",
+  "author": "Kedan",
   "license": "MIT",
   "dependencies": {
     "three": "^0.136.0"

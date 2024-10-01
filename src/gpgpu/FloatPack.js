@@ -1,5 +1,5 @@
 /**
- * @author Pierre Keda
+ * @author Kedan
  *
  * Functions to encode/decode 32 bit floating point numbers in RGBA8 texels.
  * This allows to store GPU computed data in basic textures, which is less

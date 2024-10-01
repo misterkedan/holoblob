@@ -1,5 +1,5 @@
 /**
- * Dither edit by Pierre Keda
+ * Dither edit by Kedan
  * Original class at https://github.com/mrdoob/three.js/blob/dev/examples/jsm/postprocessing/UnrealBloomPass.js
  */
 

@@ -1,6 +1,6 @@
 /**
  * Simple ticker.
- * @author Pierre Keda
+ * @author Kedan
  */
 
 class Ticker {
